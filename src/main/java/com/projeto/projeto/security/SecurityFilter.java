@@ -24,6 +24,13 @@ public class SecurityFilter extends OncePerRequestFilter {
         this.userDetailsService = userDetailsService;
     }
 
+    // Pula a verificação de JWT para requisições na rota /auth/ (login e registro)
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getRequestURI();
+        return path.startsWith("/auth/");
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
@@ -40,7 +47,7 @@ public class SecurityFilter extends OncePerRequestFilter {
 
         if (token != null) {
             String login = tokenService.validateToken(token);
-            if (login != null) {
+            if (login != null && !login.isBlank()) {
                 UserDetails user = userDetailsService.loadUserByUsername(login);
                 var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -55,6 +62,6 @@ public class SecurityFilter extends OncePerRequestFilter {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return null;
         }
-        return authHeader.replace("Bearer ", "");
+        return authHeader.replace("Bearer ", "").trim();
     }
 }
