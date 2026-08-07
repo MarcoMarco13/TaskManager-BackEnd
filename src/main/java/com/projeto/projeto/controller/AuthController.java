@@ -58,7 +58,10 @@ public class AuthController {
         }
 
         try {
-            var usernamePassword = new UsernamePasswordAuthenticationToken(data.email(), data.password());
+            // Normaliza o e-mail removendo espaços e convertendo para minúsculo
+            String normalizedEmail = data.email().trim().toLowerCase();
+
+            var usernamePassword = new UsernamePasswordAuthenticationToken(normalizedEmail, data.password());
             var auth = this.authenticationManager.authenticate(usernamePassword);
 
             var token = tokenService.generateToken((User) auth.getPrincipal());
@@ -70,12 +73,21 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterDTO data) {
-        if (this.userRepository.findByEmail(data.email()) != null) {
+        // Opcional: Descomente abaixo se desejar validar o captcha também no cadastro
+        /*
+        if (!recaptchaService.validateCaptcha(data.captchaToken())) {
+            return ResponseEntity.badRequest().body("Validação do reCAPTCHA falhou.");
+        }
+        */
+
+        String normalizedEmail = data.email().trim().toLowerCase();
+
+        if (this.userRepository.findByEmail(normalizedEmail) != null) {
             return ResponseEntity.badRequest().body("E-mail já cadastrado.");
         }
 
         String encryptedPassword = passwordEncoder.encode(data.password());
-        User newUser = new User(data.email(), encryptedPassword, data.name());
+        User newUser = new User(normalizedEmail, encryptedPassword, data.name());
 
         this.userRepository.save(newUser);
         return ResponseEntity.ok().build();
