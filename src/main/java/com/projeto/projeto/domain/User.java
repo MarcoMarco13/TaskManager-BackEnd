@@ -33,7 +33,6 @@ public class User implements UserDetails {
     @Column(name = "failed_attempts", nullable = false)
     private int failedAttempts = 0;
 
-    // ESSENCIAL: Garante que a coluna nunca fique NULL no banco de dados
     @Column(name = "account_non_locked", nullable = false)
     private boolean accountNonLocked = true;
 
@@ -113,6 +112,7 @@ public class User implements UserDetails {
     public int getFailedAttempts() { return failedAttempts; }
     public void setFailedAttempts(int failedAttempts) { this.failedAttempts = failedAttempts; }
 
+    public boolean isAccountNonLockedValue() { return accountNonLocked; }
     public void setAccountNonLocked(boolean accountNonLocked) { this.accountNonLocked = accountNonLocked; }
 
     public LocalDateTime getLockTime() { return lockTime; }

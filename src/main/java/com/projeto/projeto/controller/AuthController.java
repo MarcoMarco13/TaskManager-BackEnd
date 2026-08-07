@@ -45,6 +45,10 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginDTO data, HttpServletRequest request) {
+        if (data == null || data.email() == null || data.password() == null) {
+            return ResponseEntity.badRequest().body("E-mail e senha são obrigatórios.");
+        }
+
         String clientIp = request.getRemoteAddr();
         Bucket bucket = rateLimiterService.resolveBucket(clientIp);
 
@@ -53,12 +57,13 @@ public class AuthController {
                     .body("Muitas tentativas de login. Aguarde 1 minuto e tente novamente.");
         }
 
-        if (!recaptchaService.validateCaptcha(data.captchaToken())) {
-            return ResponseEntity.badRequest().body("Validação do reCAPTCHA falhou.");
+        if (data.captchaToken() != null && !data.captchaToken().isBlank()) {
+            if (!recaptchaService.validateCaptcha(data.captchaToken())) {
+                return ResponseEntity.badRequest().body("Validação do reCAPTCHA falhou.");
+            }
         }
 
         try {
-            // Normaliza o e-mail removendo espaços e convertendo para minúsculo
             String normalizedEmail = data.email().trim().toLowerCase();
 
             var usernamePassword = new UsernamePasswordAuthenticationToken(normalizedEmail, data.password());
@@ -73,12 +78,9 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterDTO data) {
-        // Opcional: Descomente abaixo se desejar validar o captcha também no cadastro
-        /*
-        if (!recaptchaService.validateCaptcha(data.captchaToken())) {
-            return ResponseEntity.badRequest().body("Validação do reCAPTCHA falhou.");
+        if (data == null || data.email() == null || data.password() == null) {
+            return ResponseEntity.badRequest().body("E-mail e senha são obrigatórios.");
         }
-        */
 
         String normalizedEmail = data.email().trim().toLowerCase();
 
@@ -86,10 +88,12 @@ public class AuthController {
             return ResponseEntity.badRequest().body("E-mail já cadastrado.");
         }
 
+        String name = (data.name() != null && !data.name().isBlank()) ? data.name() : normalizedEmail;
         String encryptedPassword = passwordEncoder.encode(data.password());
-        User newUser = new User(normalizedEmail, encryptedPassword, data.name());
 
+        User newUser = new User(normalizedEmail, encryptedPassword, name);
         this.userRepository.save(newUser);
+
         return ResponseEntity.ok().build();
     }
 }
