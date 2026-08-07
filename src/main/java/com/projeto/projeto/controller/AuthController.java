@@ -49,20 +49,6 @@ public class AuthController {
             return ResponseEntity.badRequest().body("E-mail e senha são obrigatórios.");
         }
 
-        String clientIp = request.getRemoteAddr();
-        Bucket bucket = rateLimiterService.resolveBucket(clientIp);
-
-        if (!bucket.tryConsume(1)) {
-            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
-                    .body("Muitas tentativas de login. Aguarde 1 minuto e tente novamente.");
-        }
-
-        if (data.captchaToken() != null && !data.captchaToken().isBlank()) {
-            if (!recaptchaService.validateCaptcha(data.captchaToken())) {
-                return ResponseEntity.badRequest().body("Validação do reCAPTCHA falhou.");
-            }
-        }
-
         try {
             String normalizedEmail = data.email().trim().toLowerCase();
 
@@ -71,11 +57,14 @@ public class AuthController {
 
             var token = tokenService.generateToken((User) auth.getPrincipal());
             return ResponseEntity.ok(new TokenResponseDTO(token));
+
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("E-mail ou senha inválidos.");
+            // Mostra a causa real (Ex: "User is locked", "Bad credentials", "User not found")
+            System.err.println("ERRO DE AUTENTICAÇÃO: " + e.getClass().getSimpleName() + " - " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Erro: " + e.getMessage());
         }
     }
-
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterDTO data) {
         if (data == null || data.email() == null || data.password() == null) {
