@@ -36,8 +36,10 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/auth/register").permitAll()
+                        // 1. Libera todas as requisições OPTIONS (Preflight do CORS)
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        // 2. Libera rotas de autenticação para qualquer método
+                        .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .anyRequest().authenticated()
                 )
@@ -50,22 +52,22 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // 1. Liste os domínios permitidos (Local e Produção)
-        configuration.setAllowedOrigins(List.of(
+        // 1. Usar setAllowedOriginPatterns em vez de setAllowedOrigins previne conflitos com setAllowCredentials(true)
+        configuration.setAllowedOriginPatterns(List.of(
                 "http://localhost:5500",
                 "http://127.0.0.1:5500",
                 "http://localhost:3000",
                 "http://localhost:8080",
-                "https://marcomarco13.github.io" // Domínio do seu GitHub Pages
+                "https://marcomarco13.github.io"
         ));
 
         // 2. Métodos HTTP permitidos
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
 
-        // 3. Headers permitidos (pode usar "*" para liberar todos os headers necessários)
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With", "Accept"));
+        // 3. Headers permitidos
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin"));
 
-        // 4. Se o front-end enviar cookies ou credenciais, habilite true (opcional, mas recomendado)
+        // 4. Credenciais
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
