@@ -49,9 +49,24 @@ public class AuthController {
             return ResponseEntity.badRequest().body("E-mail e senha são obrigatórios.");
         }
 
-        try {
-            String normalizedEmail = data.email().trim().toLowerCase();
+        String normalizedEmail = data.email().trim().toLowerCase();
 
+        // 1. Busca o usuário cadastrado no banco de dados
+        User user = (User) userRepository.findByEmail(normalizedEmail);
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("DIAGNÓSTICO: Usuário com e-mail '" + normalizedEmail + "' NÃO foi encontrado no banco.");
+        }
+
+        // 2. Compara a senha digitada com a hash salva no banco
+        boolean isPasswordMatch = passwordEncoder.matches(data.password(), user.getPassword());
+        if (!isPasswordMatch) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("DIAGNÓSTICO: A senha digitada não coincide com o Hash BCrypt salvo no banco. (Hash no banco: " + user.getPassword() + ")");
+        }
+
+        // 3. Se a senha bateu, tenta a autenticação nativa do Spring Security
+        try {
             var usernamePassword = new UsernamePasswordAuthenticationToken(normalizedEmail, data.password());
             var auth = this.authenticationManager.authenticate(usernamePassword);
 
@@ -59,10 +74,8 @@ public class AuthController {
             return ResponseEntity.ok(new TokenResponseDTO(token));
 
         } catch (Exception e) {
-            // Mostra a causa real (Ex: "User is locked", "Bad credentials", "User not found")
-            System.err.println("ERRO DE AUTENTICAÇÃO: " + e.getClass().getSimpleName() + " - " + e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("Erro: " + e.getMessage());
+                    .body("DIAGNÓSTICO: Senha e e-mail estão corretos, mas o AuthenticationManager falhou. Erro: " + e.getMessage());
         }
     }
     @PostMapping("/register")
