@@ -1,0 +1,7 @@
+# Exemplo de configuração - Copie este arquivo para application.properties
+spring.datasource.url=jdbc:postgresql://localhost:5432/seu_banco
+spring.datasource.username=seu_usuario
+spring.datasource.password=sua_senha
+
+api.security.token.secret=SUA_CHAVE_JWT_AQUI
+recaptcha.secret-key=SUA_CHAVE_RECAPTCHA_AQUI
