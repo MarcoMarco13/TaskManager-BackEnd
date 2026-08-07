@@ -31,8 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
-# Ignorar arquivos de propriedades que contêm segredos locais
-/src/main/resources/application.properties
 /src/main/resources/application.yml
 /src/main/resources/application-local.properties
 
