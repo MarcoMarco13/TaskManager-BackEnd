@@ -30,15 +30,15 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private UserRole role;
 
-    @Column(name = "failed_attempts")
+    @Column(name = "failed_attempts", nullable = false)
     private int failedAttempts = 0;
 
-    @Column(name = "account_non_locked")
+    // ESSENCIAL: Garante que a coluna nunca fique NULL no banco de dados
+    @Column(name = "account_non_locked", nullable = false)
     private boolean accountNonLocked = true;
 
     @Column(name = "lock_time")
     private LocalDateTime lockTime;
-
 
     public User() {}
 
@@ -47,6 +47,8 @@ public class User implements UserDetails {
         this.password = password;
         this.name = name;
         this.role = UserRole.USER;
+        this.failedAttempts = 0;
+        this.accountNonLocked = true;
     }
 
     public User(String email, String password, String name, UserRole role) {
@@ -54,8 +56,9 @@ public class User implements UserDetails {
         this.password = password;
         this.name = name;
         this.role = role != null ? role : UserRole.USER;
+        this.failedAttempts = 0;
+        this.accountNonLocked = true;
     }
-
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -97,7 +100,6 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
-
 
     public Long getId() { return id; }
     public String getEmail() { return email; }
