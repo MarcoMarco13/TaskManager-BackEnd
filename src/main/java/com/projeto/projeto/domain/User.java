@@ -39,6 +39,10 @@ public class User implements UserDetails {
     @Column(name = "lock_time")
     private LocalDateTime lockTime;
 
+    // =======================================================
+    // CONSTRUTORES (O JPA exige o construtor vazio)
+    // =======================================================
+
     public User() {}
 
     public User(String email, String password, String name) {
@@ -58,6 +62,10 @@ public class User implements UserDetails {
         this.failedAttempts = 0;
         this.accountNonLocked = true;
     }
+
+    // =======================================================
+    // MÉTODOS OBRIGATÓRIOS DO SPRING SECURITY (USERDETAILS)
+    // =======================================================
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -100,23 +108,34 @@ public class User implements UserDetails {
         return true;
     }
 
+    // =======================================================
+    // GETTERS E SETTERS PADRÕES
+    // =======================================================
+
     public Long getId() { return id; }
+
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+
     public void setPassword(String password) { this.password = password; }
+
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
+
     public UserRole getRole() { return role; }
     public void setRole(UserRole role) { this.role = role; }
 
     public int getFailedAttempts() { return failedAttempts; }
     public void setFailedAttempts(int failedAttempts) { this.failedAttempts = failedAttempts; }
 
-    public boolean isAccountNonLockedValue() { return accountNonLocked; }
     public void setAccountNonLocked(boolean accountNonLocked) { this.accountNonLocked = accountNonLocked; }
 
     public LocalDateTime getLockTime() { return lockTime; }
     public void setLockTime(LocalDateTime lockTime) { this.lockTime = lockTime; }
+
+    // =======================================================
+    // EQUALS & HASHCODE (Baseado no ID)
+    // =======================================================
 
     @Override
     public boolean equals(Object o) {

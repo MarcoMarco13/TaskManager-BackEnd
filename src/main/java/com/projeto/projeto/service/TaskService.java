@@ -5,7 +5,9 @@ import com.projeto.projeto.domain.User;
 import com.projeto.projeto.dto.TaskRequestDTO;
 import com.projeto.projeto.dto.TaskResponseDTO;
 import com.projeto.projeto.repository.TaskRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -33,13 +35,13 @@ public class TaskService {
 
     public TaskResponseDTO findById(Long id, User currentUser) {
         Task task = taskRepository.findByIdAndUser(id, currentUser)
-                .orElseThrow(() -> new RuntimeException("Recurso não encontrado ou acesso não permitido"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tarefa não encontrada ou acesso não permitido"));
         return mapToDTO(task);
     }
 
     public TaskResponseDTO update(Long id, TaskRequestDTO dto, User currentUser) {
         Task task = taskRepository.findByIdAndUser(id, currentUser)
-                .orElseThrow(() -> new RuntimeException("Recurso não encontrado ou acesso não permitido"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tarefa não encontrada ou acesso não permitido"));
 
         if (dto.title() != null) task.setTitle(dto.title());
         if (dto.description() != null) task.setDescription(dto.description());
@@ -51,7 +53,7 @@ public class TaskService {
 
     public void delete(Long id, User currentUser) {
         Task task = taskRepository.findByIdAndUser(id, currentUser)
-                .orElseThrow(() -> new RuntimeException("Recurso não encontrado ou acesso não permitido"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tarefa não encontrada ou acesso não permitido"));
         taskRepository.delete(task);
     }
 
