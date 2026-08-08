@@ -21,10 +21,9 @@ public class AuthorizationService implements UserDetailsService {
             throw new UsernameNotFoundException("E-mail não fornecido.");
         }
 
-        UserDetails user = userRepository.findByEmail(username.trim().toLowerCase());
-        if (user == null) {
-            throw new UsernameNotFoundException("Usuário não encontrado: " + username);
-        }
-        return user;
+        String emailLimpo = username.trim().toLowerCase();
+
+        return userRepository.findByEmail(emailLimpo)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + emailLimpo));
     }
 }

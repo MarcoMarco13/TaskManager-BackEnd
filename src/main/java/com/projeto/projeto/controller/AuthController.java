@@ -62,7 +62,8 @@ public class AuthController {
 
         String normalizedEmail = data.email().trim().toLowerCase();
 
-        if (this.userRepository.findByEmail(normalizedEmail) != null) {
+        // Atualizado para usar o Optional:
+        if (this.userRepository.findByEmail(normalizedEmail).isPresent()) {
             return ResponseEntity.badRequest().body("E-mail já cadastrado.");
         }
 
